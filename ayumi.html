@@ -1,0 +1,1398 @@
+<!--
+【簡易コーディング規約】
+・id属性はJS専用。class属性はCSS専用。
+・idはlowerCamel。classはハイフンですべて小文字。
+(外部ツールによる命名規則無視はやむなし。)
+・※例外：コンパネ注文のみ動作の制約上、idとclassをCSSで使っている。
+idがハイフン命名規則の場合は、JSでは使用していない。
+JSで使用する場合はidをlowerCamelになっている。
+
+・タグ属性が複数ある場合、id > class > それ以外の優先順位で書く。
+・インデントはスペース2文字。ただし、headとbodyはインデントしない。
+-->
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>あゆみ</title>
+  <link rel="stylesheet" href="./ayumi.css" type="text/css">
+</head>
+
+<body onLoad="getUserdata()">
+<!-- 上段：凡例とチャート部分 -->
+  <div class="chart-container">
+    <div class="chart-container-child">
+      <!-- 凡例ボックス -->
+      <div class="explain">
+        <label>【凡例】</label><br> 
+        <label style="color:orange">----- 5DMA</label>
+      </div>
+    </div>
+    <!-- 日足チャート -->
+    <div class="chart-container-child">
+      <div class="chart-day">
+        <img src="sample.png" width="800px">
+      </div>
+    </div>
+    <!-- 5分足チャート -->
+    <div class="chart-container-child">
+      <div class="chart-5min">
+        <img src="sample.png" width="800px">
+      </div>
+    </div>
+  </div>
+<!-- 上段：凡例とチャート部分おわり -->
+
+<!-- 中段：コンパネ部分 -->
+  <div class="ctrl-panel-container">
+<!-- コンパネユーザー設定 -->
+    <div class="ctrl-panel-container-child">
+          <form name="userSettingsForm">
+            <div class="user-settings">
+              【初期設定】
+              <p>
+                <label for="userName">なまえ</label>
+                <input id="userName" class="user-settings-input" type="text" value="">
+              </p>
+              <p>
+                <label for="targetDate">対象日</label>
+                <input id="targetDate" class="user-settings-input" type="text"  value="2016-01-12">
+              </p>
+              <p>
+                <label for="intervalOption">界王拳</label>
+                <select id="intervalOption" class="user-settings-input" name="kaioken" size="1">
+                  <option value="1000">1倍(1秒)</option>
+                  <option value="500" selected>2倍(0.5秒)</option>
+                  <option value="250">4倍(0.25秒)</option>
+                  <option value="100">10倍(笑)(0.1秒)</option>
+                </select>
+              </p>
+              <p class="user-settings-button">
+                <input id="setRandomDate" class="user-settings-input" type="button" value="日付ランダム設定">
+              </p>
+              <p class="user-settings-button">
+                <input id="prepareData" class="user-settings-input" type="button" value="データ準備">
+              </p>
+            </div>
+          </form>
+    </div>
+<!-- コンパネユーザー設定おわり -->
+
+<!-- コンパネコントローラー -->
+    <div class="ctrl-panel-container-child">
+      <div class="controller">
+        <p>
+          <label>当日の寄り付きシグナル：</label>
+          <label for="sellSignal">売り</label>
+          <label id="sellSignal" class="signal">0</label>
+          <label for="buySignal">買い</label>
+          <label id="buySignal" class="signal">0</label>
+        </p>
+        <p>
+          <label for="sellAtFirst"><input id="sellAtFirst" type="checkbox">寄り付き売り</label>
+          <label for="buyAtFirst"><input id="buyAtFirst" type="checkbox">寄り付き買い</label>
+        </p>
+        <p>
+          <label id="currentTime" class="current-time">現在時刻</label>
+        </p>
+        <p>
+          <input type="button" value="開始">
+          <input type="button" value="終了">
+        </p>
+        <p>
+          <input type="button" value="一本戻る">
+          <input type="button" value="一時停止">
+          <input type="button" value="一本進む">
+        </p>
+      </div>
+    </div>
+<!-- コンパネコントローラー -->
+
+<!-- コンパネ現在情報 -->
+    <div class="ctrl-panel-container-child">
+      <div class="current-info">
+        <div class="current-price">
+          <label id="currentPrice" class="current-price">現在価格</label>
+        </div>
+        <div class="current-info-table">
+          <table id="currentInfoTable">
+            <th colspan="2">売り状況</th>
+            <th colspan="2">買い状況</th>
+            <tr>
+              <td>枚数</td>
+              <td id="sellPieces">0</td>
+              <td>枚数</td>
+              <td id="buyPieces">0</td>
+            </tr>
+            <tr>
+              <td>価格</td>
+              <td id="sellPrice">0</td>
+              <td>価格</td>
+              <td id="buyPrice">0</td>
+            </tr>
+            <tr>
+              <td>損益</td>
+              <td id="sellProfit">0</td>
+              <td>損益</td>
+              <td id="buyProfit">0</td>
+            </tr>
+            <tr>
+              <td colspan="2">余力</td>
+              <td id="mySave" colspan="2">100000</td>
+            </tr>
+            <tr>
+              <td colspan="2">証拠金</td>
+              <td id="Margin" colspan="2">50000</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+<!-- コンパネ現在情報 -->
+
+<!-- コンパネ注文 -->
+    <div class="ctrl-panel-container-child">
+      <div class="order-panel">
+        <!-- TAB CONTROLLERS -->
+        <input id="market-order-ctrl" class="panel-radios" type="radio" name="tab-radios" checked>
+        <input id="ifdoco-ctrl" class="panel-radios" type="radio" name="tab-radios">
+
+        <!-- TABS LIST -->
+        <ul id="tabs-list">
+            <!-- MENU TOGGLE -->
+            <li id="li-for-market-order">
+              <label class="panel-label" for="market-order-ctrl">成行</label>
+            </li><!--INLINE-BLOCK FIX-->
+            <li id="li-for-ifdoco">
+              <label class="panel-label" for="ifdoco-ctrl">IFDOCO</label>
+            </li><!--INLINE-BLOCK FIX-->
+        </ul>
+
+        <!-- THE PANELS -->
+        <article id="order-panels">
+          <div class="order-panels-container">
+            <!-- 成行注文 -->
+            <section id="market-order">
+              <main class="order-panel-container">
+              <!-- 成行注文左 -->
+              <div class="market-order-panel">
+                <table>
+                  <th colspan="2">価格</th>
+                  <tr>
+                    <td>SELL価格</td>
+                    <td>BUY価格</td>
+                  </tr>
+                  <tr>
+                    <td><input class="sell-button" type="button" value="SELL"></td>
+                    <td><input class="buy-button" type="button" value="BUY"></td>
+                  </tr>
+                </table>
+              </div>
+              <!-- 成行注文右 -->
+              <div class="market-order-panel">
+                <p>
+                  <input type="radio" name="m-order">新規注文
+                  <input type="radio" name="m-order">決済注文
+                </p>
+                <p>
+                  <input id="moPieces" class="order-textbox" type="text">枚
+                </p>
+              </div>
+              </main>
+            </section>
+            <!-- IFDOCO注文 -->
+            <section id="ifdoco">
+              <main>
+                <!-- 親注文 -->
+                <table class="ifdoco-table">
+                  <th>親注文</th>
+                  <tr>
+                    <td>
+                      <input type="radio" name="ifdoco-order">新規買
+                      <input type="radio" name="ifdoco-order">新規売
+                    </td>
+                  </tr>
+                  <tr>
+                   <td>
+                    <input id="ifdocoParentPieces" class="order-textbox" type="text">枚
+                    <input id="ifdocoParentPrice" class="order-textbox" type="text">円で発注
+                   </td>
+                  </tr>
+                </table>
+                <!-- 子注文1 -->
+                <table class="ifdoco-table">
+                  <th>子注文1</th>
+                  <tr>
+                    <td>指値</td>
+                  </tr>
+                  <tr>
+                    <td><input id="ifdocoChild1Price" class="order-textbox" type="text">円で発注</td>
+                  </tr>
+                </table>
+                <!-- 子注文2 -->
+                <table class="ifdoco-table">
+                  <th>子注文1</th>
+                  <tr>
+                    <td>逆指値条件</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <input id="ifdocoChild2PriceAction" class="order-textbox" type="text">円以上になったら
+                      <select name="order-type" class="order-textbox">
+                        <option value="marketorder">成行</option>
+                        <option value="limitorder">指値</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <input id="ifdocoChild2Price" class="order-textbox" type="text">円で発注
+                    </td>
+                  </tr>
+                </table>
+                <p class="order-button">
+                  <input type="button" value="注文">
+                </p>
+              </main>
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+<!-- コンパネ注文 -->
+  </div>
+<!-- 中段：コンパネ部分おわり -->
+
+<!-- 下段：トレード履歴 -->
+<div class="history-container">
+  <table border="1" id="history_table">
+    <tr>
+      <th>No</th>
+      <th>新規注文日付</th>
+      <th>新規注文時刻</th>
+      <th>注文種類</th>
+      <th>注文枚数</th>
+      <th>注文価格</th>
+      <th>決済注文日付</th>
+      <th>決済注文時刻</th>
+      <th>注文種類</th>
+      <th>注文枚数</th>
+      <th>約定価格</th>
+      <th>損益</th>
+      <th>結果</th>
+    </tr>
+  </table>
+</div>
+<!-- トレード履歴おわり -->
+
+<script>
+
+/**********************************************************/
+/* クッキーから特定のデータを取得する
+/* 引数1：クッキー名(String)
+/* 戻り値：クッキー値(String)
+/* ver 1.00 2016/08/29 新規作成
+/**********************************************************/
+function GetCookie( name )
+{
+  var result = null;
+  var cookieName = name + '=';
+  var allcookies = document.cookie;
+  var position = allcookies.indexOf( cookieName );
+
+  if( position != -1 )
+  {
+      var startIndex = position + cookieName.length;
+      var endIndex = allcookies.indexOf( ';', startIndex );
+      if( endIndex == -1 )
+      {
+          endIndex = allcookies.length;
+      }
+      result = decodeURIComponent(
+          allcookies.substring( startIndex, endIndex ) );
+  }
+  return result;
+}
+
+/**********************************************************/
+/* クッキーからユーザー名を取得する
+/* ver 1.00 2016/08/29 新規作成
+/**********************************************************/
+function getUserdata(){
+    document.getElementById("username").value = $.cookie('username');
+}
+  
+
+/**********************************************************/
+/* 祝日を判定する関数。
+/* ver 1.00 2016/08/08 新規作成
+/* 戻り値＝祝日ならばその名称、祝日でなければ空文字を返す。
+/**********************************************************/
+function getNationalHoliday(dateobj) {
+  var nen, tsuki, hi, yobi;
+  if(dateobj.getFullYear() < 2007) {
+    throw new Error("2007年以上にしてください。");
+  }
+  nen = dateobj.getFullYear();
+  tsuki = dateobj.getMonth() + 1;
+  hi = dateobj.getDate();
+  yobi = dateobj.getDay();
+
+  if(tsuki == 1 && hi == 1) {
+    return "元日";
+  }
+  if(tsuki == 2 && hi == 11) {
+    return "建国記念の日";
+  }
+  if(tsuki == 4 && hi == 29) {
+    return "昭和の日";
+  }
+  if(tsuki == 5 && hi == 3) {
+    return "憲法記念日";
+  }
+  if(tsuki == 5 && hi == 4) {
+    return "みどりの日";
+  }
+  if(tsuki == 5 && hi == 5) {
+    return "こどもの日";
+  }
+  if(nen >= 2016 && tsuki == 8 && hi == 11) {
+    return "山の日"; //2016-8-11から実施。
+  }
+  if(tsuki == 11 && hi == 3) {
+    return "文化の日";
+  }
+  if(tsuki == 11 && hi == 23) {
+    return "勤労感謝の日";
+  }
+  if(tsuki == 12 && hi == 23) {
+    return "天皇誕生日";
+  }
+  if(tsuki == 1 && yobi == 1 && 7 < hi && hi < 15) {
+    return "成人の日"; //1月第2月曜日;
+  }
+  if(tsuki == 7 && yobi == 1 && 14 < hi && hi < 22) {
+    return "海の日"; //7月第3月曜日
+  }
+  if(tsuki == 9 && yobi == 1 && 14 < hi && hi < 22) {
+    return "敬老の日"; //9月第3月曜日
+  }
+  if(tsuki == 10 && yobi == 1 && 7 < hi && hi < 15) {
+    return "体育の日"; //10月第2月曜日
+  }
+  if(tsuki == 3 && hi == shunbun(nen)) {
+    return "春分の日";
+  }
+  if(tsuki == 9 && hi == shubun(nen)) {
+    return "秋分の日";
+  }
+  return "";
+}
+
+/**********************************************************/
+/* 春分の日を判定する関数。
+/* ver 1.00 2016/08/08 新規作成
+/* 引数1：年(String)
+/* 戻り値：年月日(String)
+/**********************************************************/
+function shunbun(nen) {//春分の日
+  if(nen < 1900 || nen > 2099) {
+    return 0;
+  }
+  if(nen % 4 === 0) {
+    return nen <= 1956 ? 21 : (nen <= 2088 ? 20 : 19);
+  } else if(nen % 4 == 1) {
+    return nen <= 1989 ? 21 : 20;
+  } else if(nen % 4 == 2) {
+    return nen <= 2022 ? 21 : 20;
+  } else {
+    return nen <= 1923 ? 22 : (nen <= 2055 ? 21 : 20);
+  }
+}
+
+/**********************************************************/
+/* 秋分の日を判定する関数。
+/* ver 1.00 2016/08/08 新規作成
+/* 引数1：年(String)
+/* 戻り値：年月日(String)
+/**********************************************************/
+function shubun(nen) {//秋分の日
+  if(nen < 1900 || nen > 2099) {
+    return 0;
+  }
+  if(nen % 4 === 0) {
+    return nen <= 2008 ? 23 : 22;
+  } else if(nen % 4 == 1) {
+    return nen <= 1917 ? 24 : (nen <= 2041 ? 23 : 22);
+  } else if(nen % 4 == 2) {
+    return nen <= 1946 ? 24 : (nen <= 2074 ? 23 : 22);
+  } else {
+    return nen <= 1979 ? 24 : 23;
+  }
+}
+
+/***********************************************************/
+/* 休日(祝日と日曜日と振替休日)を判定する関数。
+/* ver 1.00 2016/08/08 新規作成
+/* 戻り値＝休日ならばその名称、休日でなければ空文字を返す。
+/***********************************************************/
+function getHoliday(dateobj) {
+  var kyujitsu = "休日";
+  var isNH = [];
+  var isSun = [];
+  var holidayname = [];
+  var thisday, i;
+  if(dateobj.getFullYear() < 2007) {
+    throw new Error("2007年以上にしてください。");
+  }
+  for(i = -3; i < 2; i++) {
+    thisday = new Date(
+              dateobj.getFullYear(),
+              dateobj.getMonth(),
+              dateobj.getDate() + i);
+    holidayname[i] = getNationalHoliday(thisday);
+    isNH[i] = (holidayname[i] != "");
+    isSun[i] = thisday.getDay() === 0 ? true : false;
+  }
+  //国民の祝日に関する法律第三条
+  //第１項　「国民の祝日」は、休日とする。
+  if(isNH[0]) {
+    return holidayname[0];
+  }
+  //第２項　「国民の祝日」が日曜日に当たるときは、
+  //その日後においてその日に最も近い「国民の祝日」でない日を
+  //休日とする。
+  if(isSun[-1] && isNH[-1]) {
+    return kyujitsu;
+  }
+  if(isSun[-2] && isNH[-2] && isNH[-1]) {
+    return kyujitsu;
+  }
+  if(isSun[-3] && isNH[-3] && isNH[-2] && isNH[-1]) {
+    return kyujitsu;
+  }
+  //第３項　その前日及び翌日が「国民の祝日」である日は、休日とする。
+  if(isNH[-1] && isNH[1]) {
+    return kyujitsu;
+  }
+  //日曜日
+  if(isSun[0]) {
+    return "日曜日";
+  }
+  return "";
+}
+</script>
+
+<script>
+
+/***********************************************************/
+/* 新規注文エラーチェック。
+/* ver 1.00 2016/08/08 新規作成
+/* 戻り値＝Boolean
+/***********************************************************/
+function isNew(){
+  var mysave = trading_table.rows[3].cells[1].firstChild.data; //現在の余力
+  var mymargin = trading_table.rows[4].cells[1].firstChild.data; //現在の証拠金
+  var mypieces = document.getElementById('pieces').value; //設定した枚数
+  var myneededsave = mymargin * mypieces; //必要な余力＝証拠金×設定した枚数
+  //余力が証拠金より少ないとエラー
+  if(myneededsave > mysave){
+    alert("余力不足です。");
+    return false;
+  }
+  return true;
+}
+
+/***********************************************************/
+/* 決済注文エラーチェック。
+/* ver 1.00 2016/08/08 新規作成
+/* 戻り値＝Boolean
+/***********************************************************/
+function isSettle(tradetype){
+  var mypieces = document.getElementById('pieces').value; //設定した枚数
+  if (tradetype == "sell") { //売りの決済チェック(買い実行チェック)
+    var checkpieces = parseInt(trading_table.rows[0].cells[3].firstChild.data) - parseInt(mypieces);
+  }else if (tradetype == "buy") { //買いの決済チェック(売り実行チェック)
+    var checkpieces = parseInt(trading_table.rows[0].cells[1].firstChild.data) - parseInt(mypieces);
+  }
+  if (checkpieces < 0 ) {
+    alert("枚数不足です。");
+    return false;
+  }  
+  return true;
+//保持枚数が注文枚数より少なければエラー
+}
+
+/***********************************************************/
+/* 注文後の一覧表更新
+/* 引数1: 新規("new") or 決済("settle")
+/* 引数2: 売り("S") or 買い("L")
+/* 2016/08/23
+/***********************************************************/
+function updateResultTable(tradetypeNS, tradetypeSL){
+  var table = document.getElementById("history_table");
+  var rowcount = table.rows.length;
+  if(tradetypeNS == "new"){  //新規or決済
+    //新規の場合には行を追加する
+    var row = table.insertRow(-1);
+    row.insertCell(0).innerHTML = rowcount; //No
+    row.insertCell(1).innerHTML = document.getElementById('targetdate').value; //新規注文日付
+    row.insertCell(2).innerHTML = ClockStringTime_HHMMSS; //新規注文時刻
+    row.insertCell(3).innerHTML = tradetypeSL; //注文種類
+    row.insertCell(4).innerHTML = document.getElementById('pieces').value; //注文枚数
+    if(tradetypeSL == "S"){
+      row.insertCell(5).innerHTML = trading_table.rows[1].cells[1].firstChild.data; //注文価格
+    }else{
+      row.insertCell(5).innerHTML = trading_table.rows[1].cells[3 ].firstChild.data; //注文価格
+    }
+    row.insertCell(6).innerHTML = "-"; //決済注文日付
+    row.insertCell(7).innerHTML = "-"; //決済注文時刻
+    row.insertCell(8).innerHTML = "-"; //注文種類
+    row.insertCell(9).innerHTML = "-"; //注文枚数
+    row.insertCell(10).innerHTML = "-"; //約定価格
+    row.insertCell(11).innerHTML = "-"; //損益
+    row.insertCell(12).innerHTML = "-"; //損益
+
+  }else if(tradetypeNS == "settle"){
+    //決済の場合には新規のデータがすでに入っていることが前提
+    history_table.rows[rowcount-1].cells[6].innerText = document.getElementById('targetdate').value;
+    history_table.rows[rowcount-1].cells[7].innerText = ClockStringTime_HHMMSS;
+    history_table.rows[rowcount-1].cells[8].innerText = tradetypeSL;
+    history_table.rows[rowcount-1].cells[9].innerText = document.getElementById('pieces').value;
+    history_table.rows[rowcount-1].cells[10].innerText = document.getElementById('tick').innerHTML;
+    if(tradetypeSL == "S"){
+      tempresult = document.getElementById('tick').innerHTML - history_table.rows[rowcount-1].cells[5].innerText;
+      history_table.rows[rowcount-1].cells[11].innerText = tempresult * document.getElementById('pieces').value * 100;
+      history_table.rows[rowcount-1].cells[12].innerText = tempresult;
+      
+    }else{ //tradetypeSL==L
+      tempresult = history_table.rows[rowcount-1].cells[5].innerText - document.getElementById('tick').innerHTML;
+      history_table.rows[rowcount-1].cells[11].innerText = tempresult * document.getElementById('pieces').value * 100;
+      history_table.rows[rowcount-1].cells[12].innerText = tempresult;
+    }
+  }else{
+    alert("結果テーブル更新エラー")
+  }
+}
+
+
+/***********************************************************/
+/* 「売り」処理。新規/決済両方で呼ばれる。
+/* ver 1.01 2016/08/09 複数購入に対応(決済時にバグあり)
+/***********************************************************/
+//★両建て対応が必要
+function execSell(){
+  if (document.getElementById('neworder').checked){ //新規処理
+    if(isNew() == true){ //エラーチェック
+      var pre_pieces = parseInt(trading_table.rows[0].cells[1].firstChild.data); //既存枚数
+      var pre_price = parseInt(trading_table.rows[1].cells[1].firstChild.data); //既存価格
+      var new_pieces = parseInt(document.getElementById("pieces").value); //新規枚数
+      var new_price = parseInt(document.getElementById('tick').innerHTML) - 5; //新規価格
+      var mymargin = parseInt(trading_table.rows[4].cells[1].firstChild.data); //証拠金
+      //枚数を更新する
+      trading_table.rows[0].cells[1].innerText = pre_pieces + new_pieces;
+      //価格を更新する((既存価格×既存枚数)+(新規価格×新規枚数))÷(既存枚数+新規枚数)
+      document.getElementById('sell_price').innerHTML = 
+            ((pre_price * pre_pieces)+(new_price * new_pieces)) / (pre_pieces + new_pieces);
+      var temptick = 0;
+      orgsave = parseInt(trading_table.rows[3].cells[1].innerHTML) - (mymargin * new_pieces);
+      trading_table.rows[3].cells[1].innerHTML = orgsave;
+      updateResultTable("new", "S", temptick);
+      isSelling = true;    //売り損益を更新するフラグをON
+    }
+  }else{ //決済処理
+    var tradetype = "sell";
+    var pre_pieces = parseInt(trading_table.rows[0].cells[3].firstChild.data); //既存枚数
+    var mymargin = parseInt(trading_table.rows[4].cells[1].firstChild.data); //証拠金
+
+    if(isSettle(tradetype) == true){ //売り決済チェック(買いの枚数を持っていることが前提)
+      //枚数、価格を更新する。
+      trading_table.rows[0].cells[3].innerText = 
+            parseInt(trading_table.rows[0].cells[3].firstChild.data) - parseInt(document.getElementById("pieces").value);
+      //すべて決済した時の処理
+      if (trading_table.rows[0].cells[3].firstChild.data == "0"){
+        document.getElementById('buy_price').innerHTML = "0";
+        document.getElementById('buy_profit').innerHTML = "0";
+        isBuying = false; //買い損益を更新するフラグをOFF
+        var temptick = document.getElementById('tick').value;
+        //余力更新
+        trading_table.rows[3].cells[1].innerHTML = 
+              parseInt(trading_table.rows[3].cells[1].innerHTML) + (mymargin * pre_pieces);
+        updateResultTable("settle", "S", temptick);
+      }
+    }
+  }
+}
+
+/***********************************************************/
+/* 「買い」処理。新規/決済両方で呼ばれる。
+/* ver 1.00 2016/08/08 新規作成
+/***********************************************************/
+      //★両建て対応が必要
+function execBuy(){
+  if (document.getElementById('neworder').checked){ //新規注文だったら
+    if(isNew() == true){
+      var pre_pieces = parseInt(trading_table.rows[0].cells[3].firstChild.data); //既存枚数
+      var pre_price = parseInt(trading_table.rows[1].cells[3].firstChild.data); //既存価格
+      var new_pieces = parseInt(document.getElementById("pieces").value); //新規枚数
+      var new_price = parseInt(document.getElementById('tick').innerHTML) + 5; //新規価格
+      var mymargin = parseInt(trading_table.rows[4].cells[1].firstChild.data); //証拠金
+      //枚数を更新する
+      trading_table.rows[0].cells[3].innerText = pre_pieces + new_pieces;
+      //価格を更新する((既存価格×既存枚数)+(新規価格×新規枚数))÷(既存枚数+新規枚数)
+      document.getElementById('buy_price').innerHTML = 
+            ((pre_price * pre_pieces)+(new_price * new_pieces)) / (pre_pieces + new_pieces);
+      var temptick = 0;
+      orgsave = parseInt(trading_table.rows[3].cells[1].firstChild.data) - (mymargin * new_pieces);
+      trading_table.rows[3].cells[1].innerHTML = orgsave;
+      updateResultTable("new", "L", temptick);
+      isBuying = true;    //損益を更新するフラグをON
+    }
+  }else{
+    var tradetype = "buy";
+    var pre_pieces = parseInt(trading_table.rows[0].cells[1].firstChild.data); //既存枚数
+    var mymargin = parseInt(trading_table.rows[4].cells[1].firstChild.data); //証拠金
+    if(isSettle(tradetype) == true){ //買い決済チェック(売りの枚数を持っていることが前提)
+      //枚数、価格を更新する。
+      trading_table.rows[0].cells[1].innerText = 
+            parseInt(trading_table.rows[0].cells[1].firstChild.data) - parseInt(document.getElementById("pieces").value);
+      if (trading_table.rows[0].cells[1].firstChild.data == "0"){
+        document.getElementById('sell_price').innerHTML = "0";
+        document.getElementById('sell_profit').innerHTML = "0";
+        var temptick = document.getElementById('tick').value;
+        //余力更新
+        console.log("mymargin="+mymargin);
+        console.log("pre_pieces="+pre_pieces);
+        trading_table.rows[3].cells[1].innerHTML = 
+            parseInt(trading_table.rows[3].cells[1].innerHTML) + (mymargin * pre_pieces);
+        updateResultTable("settle", "L", temptick);
+        isSelling = false; //売り損益を更新するフラグをOFF
+      }
+    }
+  }
+}
+
+//2016/08/05 ★うまくうごいていない
+//2016/08/27 ★うまくうごいていない
+/***********************************************************/
+/* 一時停止処理
+/* ver 1.00 2016/08/08 新規作成
+/***********************************************************/
+function pauseInterval(){
+  if (intervaloption > 1000){
+    intervaloption = document.getElementById('intervaloption').value;
+  }else{
+    intervaloption = 300000;
+  }
+}
+
+
+  initialdata = [];
+  initialvolume = [];
+  groupingUnits = 
+      [
+        ['millisecond', null],
+        ['second', [1]],
+        ['minute', [1]],
+        ['hour', null],
+        ['day', null],
+        ['week', null],
+        ['month', null],
+        ['year', null]
+      ];
+  targetdate = "";
+  targettime = "";
+  seccode = "";
+  intervaloption = 0;
+  isSelling = false;
+  isBuying = false;
+  isNewUser = false;
+  username = "";
+  userid = "";
+  orgsave = trading_table.rows[3].cells[1].firstChild.data;
+  
+  sessiondate = new Date();
+  sessionkey = sessiondate.getTime();
+
+
+/*******************************************************/
+//任意の年月の第n曜日の日付を求める関数
+// year 年
+// month 月
+// number 何番目の曜日か、第1曜日なら1。第3曜日なら3
+// dayOfWeek 求めたい曜日。0〜6までの数字で曜日の日〜土を指定する
+/*******************************************************/
+function getWhatDayOfWeek(year, month, number, dayOfWeek) {
+  var firstDt = new Date(year, month - 1, 1);
+  var firstDayOfWeek = firstDt.getDay();//指定した年月の1日の曜日を取得
+  var day = dayOfWeek - firstDayOfWeek + 1;
+  if(day <= 0) day += 7;//1週間を足す
+  var dt = new Date(year, month - 1, day);
+  var msTime = dt.getTime();
+  msTime += (86400000 * 7 * (number - 1));//n曜日まで1週間を足し込み
+  dt.setTime(msTime);
+  return dt;
+}
+
+/*******************************************************/
+//targetdateからseccodeを割り出す。
+//【seccode仕様】
+// 1桁目(固定)・・・「1」
+// 2桁目(固定)・・・先物取引＝「6」
+// 3桁目(変動)・・・1985年を「0」として10年サイクルの数字。2015年＝「0」
+// 4,5桁目(変動)・・・限月を2桁で表示。ゼロ埋め。
+// 6,7桁目(固定)・・・権利行使価格。先物では使用しないので「00」
+// 8,9桁目(固定)・・・先物miniは「19」。
+/*******************************************************/
+function getSeccode(targetdate, targettime){
+  seccode = "16";
+  //console.log(targetdate);
+  //3桁目の計算
+  var yyyy = new Date(targetdate);
+  var Thirddigit = (parseInt(yyyy.getFullYear()) - 1985) + ''; //最後は文字列変換する
+  seccode = seccode + Thirddigit.slice(-1); //下1桁を追加
+
+  //4,5桁目の計算。getMonth()はゼロ始まりなのでプラスする。
+  //3,6,9,12月は第二金曜日より前か後かで数値が変わる。
+  var contractmonth = yyyy.getMonth() + 1;
+  switch (contractmonth){
+    case 1:
+    case 2:
+      seccode = seccode + "03";
+      break;
+    case 3:
+      //3月(3)第二(2)金曜(5)を求める
+      var constractdate = getWhatDayOfWeek(parseInt(yyyy.getFullYear()), 3, 2, 5);
+      constractdate.setHours(constractdate.getHours() + 16);
+      //時刻を16:00に設定して比較
+      var temptargetdate = new Date(targettime);
+      if(constractdate > temptargetdate){
+        seccode = seccode + "03";
+        break;
+      }else if(constractdate < temptargetdate){
+        seccode = seccode + "06";
+        break;
+      }
+    case 4:
+    case 5:
+      seccode = seccode + "06";
+      break;
+    case 6:
+      //6月(6)第二(2)金曜(5)を求める
+      var constractdate = getWhatDayOfWeek(parseInt(yyyy.getFullYear()), 6, 2, 5);
+      constractdate.setHours(constractdate.getHours() + 16);
+      //時刻を16:00に設定して比較
+      var temptargetdate = new Date(targettime);
+      if(constractdate > temptargetdate){
+        seccode = seccode + "06";
+        break;
+      }else if(constractdate < temptargetdate){
+        seccode = seccode + "09";
+        break;
+      }
+
+    case 7:
+    case 8:
+      seccode = seccode + "09";
+      break;
+    case 9:
+      //9月(9)第二(2)金曜(5)を求める
+      var constractdate = getWhatDayOfWeek(parseInt(yyyy.getFullYear()), 9, 2, 5);
+      constractdate.setHours(constractdate.getHours() + 16);
+      //時刻を16:00に設定して比較
+      var temptargetdate = new Date(targettime);
+      if(constractdate > temptargetdate){
+        seccode = seccode + "09";
+        break;
+      }else if(constractdate < temptargetdate){
+        seccode = seccode + "12";
+        break;
+      }
+
+    case 10:
+    case 11:
+      seccode = seccode + "12";
+      break;
+    case 12:
+      //12月(12)第二(2)金曜(5)を求める
+      var constractdate = getWhatDayOfWeek(parseInt(yyyy.getFullYear()), 12, 2, 5);
+      constractdate.setHours(constractdate.getHours() + 16);
+      //時刻を16:00に設定して比較
+      var temptargetdate = new Date(targettime);
+      if(constractdate > temptargetdate){
+        seccode = seccode + "12";
+        break;
+      }else if(constractdate < temptargetdate){
+        seccode = seccode + "03";
+        break  ;
+      }
+  }
+
+  seccode = seccode + "0019";
+  return seccode;
+}
+
+/***********************************************************/
+/* ランダムで日付を生成する。
+/* ver 1.00 2016/08/08 新規作成
+/* 戻り値＝yyyy-mm-dd(String)
+/* memo: 2/31など夢の日付が指定されるため、
+/* Dateオブジェクトに変えた方がいいだろう。
+/***********************************************************/
+function getRandomDate(){
+  var yyyy = 2016;
+  var mm = 1;
+  var dd = 1;
+  
+  //yyyy取得(現時点では2016年固定)
+  //mm取得(01～06) ※データが増えたら考える
+  mm = parseInt(Math.random() * 7);
+  if (mm == 0) { mm++;}
+  //dd取得(01～31)
+  dd = parseInt(Math.random() * 32);
+  if (dd == 0) { dd++;}
+  
+  var resultdate = yyyy + "-" + mm + "-" + dd;
+  
+  return resultdate;
+
+}
+
+/***********************************************************/
+/* RandomStartボタンを押した時の行動
+/* ver 1.00 2016/08/08 新規作成
+/* ランダムに日付を取得してitializeDataを呼び出す。
+/***********************************************************/
+function RandomizeDate(){
+  var isRandomDate = false;
+  while (isRandomDate == false){
+    targetdate = getRandomDate();
+    if (getHoliday(new Date(targetdate)) == ""){
+      isRandomDate = true;
+    }
+  }
+//  console.log(targetdate);
+  //休日チェック
+  document.getElementById("targetdate").value = targetdate;
+  initializeData();
+}
+
+/***********************************************************/
+/* 実行前のエラーチェック、クッキーチェック
+/* 戻り値：Boolean
+/* ver 1.00 2016/08/29 新規作成
+/***********************************************************/
+function isInitial(){
+  var checkname = $.cookie("username");
+  var checkID = $.cookie("userid");
+  if (checkname == "" || checkID == ""){
+    isNewUser = true;
+  }
+  if(document.getElementById('username').value == ""){
+    alert("なまえを入力してください。");
+    return false;
+  }
+  if(document.getElementById('username').value == "master"){
+    alert("この名前はつかえません。");
+    return false;
+  }
+  if(document.getElementById('username').value == "ロト"){
+    alert("じぶんのなまえをいれてください。");
+    return false;
+  }
+  if(document.getElementById('username').value == "undefined"){
+    alert("なまえを入力してください。");
+    return false;
+  }
+  if(document.getElementById('username').value.length > 16){
+    alert("なまえは16文字以内にしてください。");
+    return false;
+  }
+  
+  if(document.getElementById("username").value != checkname){
+    var myret = confirm("ユーザー名が変更されています。このまま続けると過去のデータが読み込めなくなりますが続けてよいですか？");
+    if(myret == true){
+      isNewUser = true;
+    }else{
+      return false;
+    }
+  }
+  if(document.getElementById('targetdate').value == ""){
+    alert("日付を入力してください。");
+    return false;
+  }
+  if(document.getElementById('targettime').value == ""){
+    alert("時刻を入力してください。");
+    return false;
+  }
+
+  return true;
+}
+
+function createUserID(){
+  // 生成する文字列の長さ
+  var l = 16;
+
+  // 生成する文字列に含める文字セット
+  var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  var cl = c.length;
+  var r = "";
+  for(var i=0; i<l; i++){
+    r += c[Math.floor(Math.random()*cl)];
+  }
+  
+  return r;
+}
+
+/*******************************************************/
+function initializeData(){
+  //エラーチェック
+  if (!isInitial()){
+    return;
+  }
+
+  //オブジェクト無効化
+  document.getElementById('username').disabled = true;
+  document.getElementById('targetdate').disabled = true;
+  document.getElementById('targettime').disabled = true;
+  document.getElementById('intervaloption').disabled = true;
+  document.getElementById('start').disabled = true;
+  document.getElementById('randstart').disabled = true;
+
+  targetdate = document.getElementById('targetdate').value;
+  targettime = targetdate + " " + document.getElementById('targettime').value;
+  seccode = getSeccode(targetdate, targettime);
+  intervaloption = document.getElementById('intervaloption').value;
+
+  //名前のチェック
+  if(isNewUser == true){
+    //名前をクッキーに保存する
+    $.cookie('username', document.getElementById('username').value, {expires: 365});
+    var id = createUserID();
+    $.cookie('userid', id, {expires: 365});
+
+  }
+
+  //休日チェック
+  if(getHoliday(new Date(targetdate)) != ""){
+    alert("相場はお休みです。別の日を指定してください。");
+    exit;
+  }else{
+  console.log("平日指定");
+  }  
+
+
+  jQuery.ajax({
+    type: 'get',
+    url: 'ayumi3.php',
+    async: false,
+    data: {
+      targetdate: targetdate, 
+      targettime: "02:30:00",  //targettimeから30本前とかできるといいね。
+      secflag:"99",
+      seccode: seccode
+    }
+  }) //  jQuery.ajax({
+
+  .done(function(data){
+    var mydata = JSON.parse(data);
+//    console.log(temptime);
+  for(var ii = 0; ii < mydata.length; ii++){
+    var temptime = new Date(targetdate+" "+mydata[ii][0]);
+    temptime = temptime.getTime();
+    initialdata.push([
+        temptime, 
+        parseInt(mydata[ii][1]), 
+        parseInt(mydata[ii][2]), 
+        parseInt(mydata[ii][3]), 
+        parseInt(mydata[ii][4])
+        ]); //initialdata.push
+    initialvolume.push([
+        temptime,
+        parseInt(mydata[ii][5])
+    ]); //initialvolume.push
+  } //for
+}).fail(function(result){alert("しっぱいナリ")}); //.done(function(data){
+  tickStart(initialdata, initialvolume ,seccode); //訓練開始
+} //function initializeData(){
+
+/*****************************************************/
+function tickStart(initialdata, initialvolume, seccode){
+/*****************************************************/
+
+$(function () {
+//console.log(initialdata[0]);
+var open_price = 0;
+var high_price = 0;
+var low_price = 0;
+var close_price = 0;
+var volume = 0;
+//var lastdatalength = 0;
+//var lastdatalength2 = 0;
+
+
+
+Highcharts.setOptions({global : {useUTC : false}});
+// Create the chart
+$('#container').highcharts('StockChart', {
+  plotOptions: {candlestick: { color: 'green', upColor: 'red'}},
+  scrollbar: {enabled: true},
+  navigator:{enabled: false},
+  chart : {
+    events : {
+      load : function () {
+        // set up the updating of the chart each second
+        var series = this.series[0];
+        var series_v = this.series[1];
+        var ClockDateObject_HHMMSS = new Date(targettime);
+        var ClockUnixTime_HHMMSS = 0;
+        var ClockUnixTime_HHMM = 0;
+
+/******************************************************/
+        setInterval(function () {
+/******************************************************/
+          //PHPへ送るための時刻(HH:MM:SS)
+          var hour = ("0" + ClockDateObject_HHMMSS.getHours()).slice(-2);
+          var minute = ("0" + ClockDateObject_HHMMSS.getMinutes()).slice(-2);
+          var second = ("0" + ClockDateObject_HHMMSS.getSeconds()).slice(-2);
+          ClockStringTime_HHMMSS = hour + ":" + minute + ":" + second;
+          //Open/Close/それ以外のフラグ
+          var secflag = ClockDateObject_HHMMSS.getSeconds();
+          //足表示用のunixtime
+          var tempClockDO_HHMM = new Date(ClockDateObject_HHMMSS);
+          tempClockDO_HHMM.setSeconds("00");
+          ClockUnixTime_HHMM = tempClockDO_HHMM.getTime();
+        //setInterval秒ごとに実行するPHP
+          jQuery.ajax({
+            type: 'get',
+            url: 'ayumi3.php',
+            async: false,
+            data: {
+              targetdate: targetdate, 
+              targettime: ClockStringTime_HHMMSS, 
+              secflag:secflag,
+              seccode: seccode},
+
+            success: function(data){
+              //dataが取得できなかった場合は次のターンへ移動。(おそらくDBから取得できていない)
+              if(data == "") {
+                alert(ClockStringTime_HHMMSS+"nullだよ");
+                return;
+              }
+
+              /*********************************************************************/
+              /* 0秒処理 */
+              /*********************************************************************/
+              if(secflag == 0){
+                //console.log("0秒処理");
+                var mydata = JSON.parse(data);
+                if(mydata[0] != 0){
+                  close_price = mydata[0];
+                  open_price = close_price;
+                  high_price = close_price;
+                  low_price = close_price;
+                  volume = mydata[1];
+                series.removePoint(series.data.length, false);
+                series_v.removePoint(series_v.data.length, false);
+                //console.time("add");
+                  series.addPoint([
+                      ClockUnixTime_HHMM, 
+                      parseInt(open_price), 
+                      parseInt(high_price), 
+                      parseInt(low_price), 
+                      parseInt(close_price)], 
+                      true, false, true
+                  );
+                  series_v.addPoint([
+                      ClockUnixTime_HHMM, 
+                      parseInt(volume)],
+                      true, false, true
+                  );
+                //console.timeEnd("add");
+                } //if(mydata[0] != 0){
+              /*********************************************************************/
+              /* 59秒処理
+              /*********************************************************************/
+              }else if(secflag == 59){ //if(secflag == 0){
+                //console.log("59秒処理");
+                  //2016/07/21
+                  //★何かエラーが起きている。
+                  //1分足の表示もイケてない気がする。(なんかDBデータとずれている)
+                  var mydata = JSON.parse(data);
+                  open_price = mydata[0];
+                  high_price = mydata[1];
+                  low_price = mydata[2];
+                  close_price = mydata[3];
+                  series.removePoint(series.data.length - 1, false);
+                  series_v.removePoint(series_v.data.length - 1, false);
+                  series.addPoint([
+                      ClockUnixTime_HHMM, 
+                      parseInt(mydata[0]), 
+                      parseInt(mydata[1]), 
+                      parseInt(mydata[2]), 
+                      parseInt(mydata[3])], 
+                      true, false, true);
+                  series_v.addPoint([
+                      ClockUnixTime_HHMM, 
+                      parseInt(mydata[4])],
+                      true, false, true);
+              /*********************************************************************/
+              /* それ以外秒処理
+              /*********************************************************************/
+              }else{
+              //console.log(secflag + "秒処理");
+                //01～58秒の処理
+                var mydata = JSON.parse(data);
+                if(mydata[0] != 0){
+                  if(open_price == 0){ open_price = mydata[0]};
+                  if(high_price < mydata[0]){high_price = mydata[0]};
+                  if(low_price == 0){low_price = mydata[0]};
+                  if(low_price > mydata[0]){low_price = mydata[0]};
+                  close_price = mydata[0];
+                  volume = volume + mydata[1];
+                  //秒までのデータを分までのデータに置き換えて配列に組み込む
+                  series.removePoint(series.data.length - 1, false);
+                  series_v.removePoint(series_v.data.length - 1, false);
+                  var starttime = new Date();
+                  series.addPoint([
+                      ClockUnixTime_HHMM, 
+                      parseInt(open_price), 
+                      parseInt(high_price), 
+                      parseInt(low_price), 
+                      parseInt(close_price)], 
+                      true, false, true
+                  );
+                  series_v.addPoint([
+                      ClockUnixTime_HHMM, 
+                      parseInt(volume)], 
+                      true, false, true
+                  );
+                  var endtime = new Date();
+                  //スリープ処理(不要かも)
+                  var sleeptimer = endtime - starttime;
+                  //console.log("sleeptimer:" + sleeptimer);
+                   $(this).delay(sleeptimer).queue(function() {
+                     $(this).dequeue();
+                   });
+                } // if(mydata[0] != 0){
+              } //}else{
+              //画面に現在の価格と時刻を表示する
+              document.getElementById("tick").innerHTML = close_price;
+              document.getElementById("curttime").innerHTML = ClockStringTime_HHMMSS;
+              /*********************************************************************/
+              /* 売り注文が入っている状態の画面描画更新
+              /*********************************************************************/
+              if(isSelling == true){
+                //損益＝(価格ー現在価格) * 100 * 枚数
+                var curtpl = (parseInt(trading_table.rows[1].cells[1].firstChild.data) - parseInt(close_price)) 
+                             * 100 * trading_table.rows[0].cells[1].firstChild.data;
+                if (curtpl > 0) {
+                   trading_table.rows[2].cells[1].innerHTML = "<font color='red'>" + curtpl + "</font>";
+                }else if (curtpl < 0) {
+                   trading_table.rows[2].cells[1].innerHTML = "<font color='green'>" + curtpl + "</font>";
+                }else if (curtpl == 0) {
+                   trading_table.rows[2].cells[1].innerHTML = "<font color='black'>" + curtpl + "</font>";
+                }
+                //余力調整
+                //余力＝元の余力+損益
+                trading_table.rows[3].cells[1].innerHTML = orgsave + curtpl;
+              } // if(isSelling == true){
+
+              /*********************************************************************/
+              /* 買い注文が入っている状態の画面描画更新                            */
+              /*********************************************************************/
+              if(isBuying == true){
+                //損益＝(現在価格-価格) * 100 * 枚数
+                var curtpl = (parseInt(close_price) - parseInt(trading_table.rows[1].cells[3].firstChild.data)) 
+                            * 100 * trading_table.rows[0].cells[3].firstChild.data;
+                if (curtpl > 0) {
+                   trading_table.rows[2].cells[3].innerHTML = "<font color='red'>" + curtpl + "</font>";
+                }else if (curtpl < 0) {
+                   trading_table.rows[2].cells[3].innerHTML = "<font color='green'>" + curtpl + "</font>";
+                }else if (curtpl == 0) {
+                   trading_table.rows[2].cells[3].innerHTML = "<font color='black'>" + curtpl + "</font>";
+                }
+                //余力調整
+                trading_table.rows[3].cells[1].innerHTML = orgsave + curtpl;
+              } // if(isBuying == true){
+            },//success: function(data){
+            error: function(){
+              alert("failed....");
+            } //error: function(){
+          }); //  jQuery.ajax({
+        //1秒更新。時計と同じ動き
+        ClockDateObject_HHMMSS.setSeconds(ClockDateObject_HHMMSS.getSeconds() + 1);
+
+/******************************/
+        }, intervaloption); // setInterval(function () {
+/******************************/
+      } // load : function () {
+    } // events : {
+  }, // chart : {
+
+  rangeSelector: {
+    buttons: [{
+      count: 1,
+      type: 'minute',
+      text: '1M'
+    }, {
+      count: 5,
+      type: 'minute',
+      text: '5M'
+    }, {
+      type: 'all',
+      text: 'All'
+    }],
+    inputEnabled: false,
+    selected: 2
+  },
+
+  yAxis : [{
+    lineWidth: 1,
+    opposite: true,
+    title: {text: ''},
+    scalable: false,
+    labels:{
+      align: 'left',
+      x: 10
+    },
+    height: '60%'
+  },{
+    lineWidth: 1,
+    offset: 0,
+    title: {text: ''},
+    scalable: true,
+    labels:{
+      align: 'left',
+      x: 10
+    },
+    top: '65%',
+    height: '35%'
+  }],
+
+  title : {text : 'Nikkei 225 Future mini (1 minute)'},
+  indicators: [{
+    id: 'primary',
+    type: 'sma',
+    params: {
+        period: 5
+    },
+    styles: {
+      strokeWidth: 1,
+      stroke: 'orange',
+    }
+  },
+  {
+    id: 'primary',
+    type: 'sma',
+    params: {
+        period: 30
+    },
+    styles: {
+      strokeWidth: 1,
+      stroke: 'red',
+      dashstyle: 'solid'
+    }
+  },
+  {
+  id: 'primary',
+  type: 'sma',
+  params: {
+      period: 60
+  },
+    styles: {
+      strokeWidth: 1,
+      stroke: 'blue',
+      dashstyle: 'solid'
+    }
+  }],
+  scrollbar: {enabled: true},
+  exporting: {enabled: false},
+  series : [{
+    type : 'candlestick',
+    name : 'N225Fmini',
+    id: 'primary',
+    data : initialdata,
+    dataGrouping: {
+        units: groupingUnits
+    }    
+  },
+  {
+    type: 'column',
+    name: 'Volume',
+    data: initialvolume,
+    yAxis: 1,
+    dataGrouping: {
+        units: groupingUnits
+    }    
+  }] //        series : [{
+}); //$('#container').highcharts('StockChart', {
+}); //$(function () {
+} //function tickStart(){
+</script>
+
+<script>
+function isData(checkdata){
+  var result = false;
+  for(ii=0; ii < 13; ii++){ //テーブル列数は13
+    if(checkdata[ii]=="" || checkdata[ii] == "-"){
+      return false;
+    }
+  }
+  return true;
+}
+
+function insertResult(){
+  username = $.cookie("username");
+  userid = $.cookie("userid");
+  var rowcount = history_table.rows.length;
+console.log("rowcount"+rowcount);
+  if(rowcount < 2){  //データが1個もなかったら処理しない。(アラートを出す)
+    alert("結果がありません");
+    exit;
+  }
+
+  var checkdata = []; //データが入っているか確認用。1行
+  var resultdata = []; //PHPに送り込むデータ。二次元配列
+
+  var hh, ii, jj = 0;
+  for (ii = 1;ii < rowcount; ii++){
+    hh = ii - 1;
+    checkdata[hh] = [];
+    for (jj = 0; jj < 13; jj++){
+      checkdata[hh][jj] = history_table.rows[ii].cells[jj].innerText;
+    }
+    if(isData(checkdata)){
+      //取り込み用データ作成
+      var dateformat = new DateFormat("yyyy-MM-dd");
+      var today = dateformat.format(new Date()); //今日の日付
+      checkdata[hh].unshift(today);
+      resultdata.push(checkdata[hh]);
+console.log("resultdata="+resultdata);
+    }
+  }
+
+  jQuery.ajax({
+    type: 'get',
+    url: 'ayumi4.php',
+    async: false,
+    data: {
+      sessionkey: sessionkey,
+      username: username,
+      userid: userid,
+      resultdata: resultdata
+    },
+    success: function(data){
+      while (history_table.rows[1]) history_table.deleteRow(1);
+      document.getElementById("message").innerHTML = data;
+    }
+  }) //  jQuery.ajax({
+}
+</script>
+
+<input type="button" id="insertResult" name="insertResult" onClick="insertResult()" value="結果取り込み">
+<label id="message"></lable>
+
+</body>
+</html>
