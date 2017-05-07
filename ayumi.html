@@ -1,0 +1,292 @@
+<!--
+【簡易コーディング規約】
+・id属性はJS専用。class属性はCSS専用。
+・idはlowerCamel。classはハイフンですべて小文字。
+(外部ツールによる命名規則無視はやむなし。)
+・※例外：コンパネ注文のみ動作の制約上、idとclassをCSSで使っている。
+idがハイフン命名規則の場合は、JSでは使用していない。
+JSで使用する場合はidをlowerCamelになっている。
+
+・タグ属性が複数ある場合、id > class > それ以外の優先順位で書く。
+・インデントはスペース2文字。ただし、headとbodyはインデントしない。
+-->
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>あゆみ</title>
+  <link rel="stylesheet" href="./ayumi.css" type="text/css">
+</head>
+
+<body onLoad="getUserdata()">
+<!-- 上段：凡例とチャート部分 -->
+  <div class="chart-container">
+    <div class="chart-container-child">
+      <!-- 凡例ボックス -->
+      <div class="explain">
+        <label>【凡例】</label><br> 
+        <label style="color:orange">----- 5DMA</label>
+      </div>
+    </div>
+    <!-- 日足チャート -->
+    <div class="chart-container-child">
+      <div class="chart-day">
+        <img src="sample.png" width="800px">
+      </div>
+    </div>
+    <!-- 5分足チャート -->
+    <div class="chart-container-child">
+      <div class="chart-5min">
+        <img src="sample.png" width="800px">
+      </div>
+    </div>
+  </div>
+<!-- 上段：凡例とチャート部分おわり -->
+
+<!-- 中段：コンパネ部分 -->
+  <div class="ctrl-panel-container">
+<!-- コンパネユーザー設定 -->
+    <div class="ctrl-panel-container-child">
+          <form name="userSettingsForm">
+            <div class="user-settings">
+              【初期設定】
+              <p>
+                <label for="userName">なまえ</label>
+                <input id="userName" class="user-settings-input" type="text" value="">
+              </p>
+              <p>
+                <label for="targetDate">対象日</label>
+                <input id="targetDate" class="user-settings-input" type="text"  value="2016-01-12">
+              </p>
+              <p>
+                <label for="intervalOption">界王拳</label>
+                <select id="intervalOption" class="user-settings-input" name="kaioken" size="1">
+                  <option value="1000">1倍(1秒)</option>
+                  <option value="500" selected>2倍(0.5秒)</option>
+                  <option value="250">4倍(0.25秒)</option>
+                  <option value="100">10倍(笑)(0.1秒)</option>
+                </select>
+              </p>
+              <p class="user-settings-button">
+                <input id="setRandomDate" class="user-settings-input" type="button" value="日付ランダム設定">
+              </p>
+              <p class="user-settings-button">
+                <input id="prepareData" class="user-settings-input" type="button" value="データ準備">
+              </p>
+            </div>
+          </form>
+    </div>
+<!-- コンパネユーザー設定おわり -->
+
+<!-- コンパネコントローラー -->
+    <div class="ctrl-panel-container-child">
+      <div class="controller">
+        <p>
+          <label>当日の寄り付きシグナル：</label>
+          <label for="sellSignal">売り</label>
+          <label id="sellSignal" class="signal">0</label>
+          <label for="buySignal">買い</label>
+          <label id="buySignal" class="signal">0</label>
+        </p>
+        <p>
+          <label for="sellAtFirst"><input id="sellAtFirst" type="checkbox">寄り付き売り</label>
+          <label for="buyAtFirst"><input id="buyAtFirst" type="checkbox">寄り付き買い</label>
+        </p>
+        <p>
+          <label id="currentTime" class="current-time">現在時刻</label>
+        </p>
+        <p>
+          <input type="button" value="開始">
+          <input type="button" value="終了">
+        </p>
+        <p>
+          <input type="button" value="一本戻る">
+          <input type="button" value="一時停止">
+          <input type="button" value="一本進む">
+        </p>
+      </div>
+    </div>
+<!-- コンパネコントローラー -->
+
+<!-- コンパネ現在情報 -->
+    <div class="ctrl-panel-container-child">
+      <div class="current-info">
+        <div class="current-price">
+          <label id="currentPrice" class="current-price">現在価格</label>
+        </div>
+        <div class="current-info-table">
+          <table id="currentInfoTable">
+            <th colspan="2">売り状況</th>
+            <th colspan="2">買い状況</th>
+            <tr>
+              <td>枚数</td>
+              <td id="sellPieces">0</td>
+              <td>枚数</td>
+              <td id="buyPieces">0</td>
+            </tr>
+            <tr>
+              <td>価格</td>
+              <td id="sellPrice">0</td>
+              <td>価格</td>
+              <td id="buyPrice">0</td>
+            </tr>
+            <tr>
+              <td>損益</td>
+              <td id="sellProfit">0</td>
+              <td>損益</td>
+              <td id="buyProfit">0</td>
+            </tr>
+            <tr>
+              <td colspan="2">余力</td>
+              <td id="mySave" colspan="2">100000</td>
+            </tr>
+            <tr>
+              <td colspan="2">証拠金</td>
+              <td id="margin" colspan="2">50000</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+<!-- コンパネ現在情報 -->
+
+<!-- コンパネ注文 -->
+    <div class="ctrl-panel-container-child">
+      <div class="order-panel">
+        <!-- TAB CONTROLLERS -->
+        <input id="market-order-ctrl" class="panel-radios" type="radio" name="tab-radios" checked>
+        <input id="ifdoco-ctrl" class="panel-radios" type="radio" name="tab-radios">
+
+        <!-- TABS LIST -->
+        <ul id="tabs-list">
+            <!-- MENU TOGGLE -->
+            <li id="li-for-market-order">
+              <label class="panel-label" for="market-order-ctrl">成行</label>
+            </li><!--INLINE-BLOCK FIX-->
+            <li id="li-for-ifdoco">
+              <label class="panel-label" for="ifdoco-ctrl">IFDOCO</label>
+            </li><!--INLINE-BLOCK FIX-->
+        </ul>
+
+        <!-- THE PANELS -->
+        <article id="order-panels">
+          <div class="order-panels-container">
+            <!-- 成行注文 -->
+            <section id="market-order">
+              <main class="order-panel-container">
+              <!-- 成行注文左 -->
+              <div class="market-order-panel">
+                <table>
+                  <th colspan="2">価格</th>
+                  <tr>
+                    <td id="sellPriceForMarketOrder">SELL価格</td>
+                    <td id="buyPriceForMarketOrder">BUY価格</td>
+                  </tr>
+                  <tr>
+                    <td><input class="sell-button" type="button" value="SELL"></td>
+                    <td><input class="buy-button" type="button" value="BUY"></td>
+                  </tr>
+                </table>
+              </div>
+              <!-- 成行注文右 -->
+              <div class="market-order-panel">
+                <p>
+                  <input type="radio" name="m-order">新規注文
+                  <input type="radio" name="m-order">決済注文
+                </p>
+                <p>
+                  <input id="moPieces" class="order-textbox" type="text">枚
+                </p>
+              </div>
+              </main>
+            </section>
+            <!-- IFDOCO注文 -->
+            <section id="ifdoco">
+              <main>
+                <!-- 親注文 -->
+                <table class="ifdoco-table">
+                  <th>親注文</th>
+                  <tr>
+                    <td>
+                      <input type="radio" name="ifdoco-order">新規買
+                      <input type="radio" name="ifdoco-order">新規売
+                    </td>
+                  </tr>
+                  <tr>
+                   <td>
+                    <input id="ifdocoParentPieces" class="order-textbox" type="text">枚
+                    <input id="ifdocoParentPrice" class="order-textbox" type="text">円で発注
+                   </td>
+                  </tr>
+                </table>
+                <!-- 子注文1 -->
+                <table class="ifdoco-table">
+                  <th>子注文1</th>
+                  <tr>
+                    <td>指値</td>
+                  </tr>
+                  <tr>
+                    <td><input id="ifdocoChild1Price" class="order-textbox" type="text">円で発注</td>
+                  </tr>
+                </table>
+                <!-- 子注文2 -->
+                <table class="ifdoco-table">
+                  <th>子注文1</th>
+                  <tr>
+                    <td>逆指値条件</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <input id="ifdocoChild2PriceAction" class="order-textbox" type="text">円以上になったら
+                      <select name="order-type" class="order-textbox">
+                        <option value="marketorder">成行</option>
+                        <option value="limitorder">指値</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <input id="ifdocoChild2Price" class="order-textbox" type="text">円で発注
+                    </td>
+                  </tr>
+                </table>
+                <p class="order-button">
+                  <input type="button" value="注文">
+                </p>
+              </main>
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+<!-- コンパネ注文 -->
+  </div>
+<!-- 中段：コンパネ部分おわり -->
+
+<!-- 下段：トレード履歴 -->
+  <div class="history-container">
+    <table border="1" id="historyTable">
+      <tr>
+        <th>No</th>
+        <th>新規注文日付</th>
+        <th>新規注文時刻</th>
+        <th>売買</th>
+        <th>注文種類</th>
+        <th>注文枚数</th>
+        <th>注文価格</th>
+        <th>決済注文日付</th>
+        <th>決済注文時刻</th>
+        <th>売買</th>
+        <th>注文種類</th>
+        <th>注文枚数</th>
+        <th>約定価格</th>
+        <th>損益</th>
+        <th>結果</th>
+      </tr>
+    </table>
+  </div>
+  <input id="insertResult" type="button" name="insertResult" onClick="insertResult()" value="結果取り込み">
+  <label id="message"></lable>
+<!-- トレード履歴おわり -->
+</body>
+</html>
