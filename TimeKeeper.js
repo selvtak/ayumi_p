@@ -11,7 +11,7 @@ class TimeKeeper  {
     }
 
     /**
-     * 時間制御
+     * 時間制御を行う
      */
     setInterval(){
 
