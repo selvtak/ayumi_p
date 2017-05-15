@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: TimeKeeper.js</title>
+    <title>JSDoc: Source: UserAction.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: TimeKeeper.js</h1>
+    <h1 class="page-title">Source: UserAction.js</h1>
 
     
 
@@ -27,10 +27,10 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * Ayumiの中心を司るクラス。主な機能は時計制御。
+ * ユーザ処理の窓口となるクラス
  * 
  */
-class TimeKeeper  {
+class UserAction  {
     /**
      * @constructor
      */
@@ -39,12 +39,78 @@ class TimeKeeper  {
     }
 
     /**
-     * 時間制御を行う
+     * 日付ランダム設定を行う
      */
-    setInterval(){
+    setRandomDate(){
 
     }
 
+    /**
+     * 開始前にデータを準備する
+     * チャートデータ取得、日足データ描画など
+     */
+    prepareData(){
+
+    }
+
+    /**
+     * トレードを開始する
+     */
+    beginTrade(){
+
+    }
+
+    /**
+     * トレードを終了する
+     */
+    endTrade(){
+
+    }  
+
+    /**
+     * 一本戻る
+     */
+    prevCandlestick(){
+
+    }  
+
+    /**
+     * 一本進む
+     */
+    nextCandlestick(){
+
+    }  
+
+    /**
+     * 一時停止する
+     */
+    pauseTrade(){
+
+    }  
+
+    /**
+     * 成行で売り注文を出す
+     * 新規/決済で共通
+     */
+    sellOrder(){
+
+    }  
+
+    /**
+     * 成行で買い注文を出す
+     * 新規/決済で共通
+    */
+    buyOrder(){
+
+    }  
+
+    /**
+     * IFDOCO注文を出す
+     */
+    ifdocoOrder(){
+
+    }  
+    
 }
 </code></pre>
         </article>
