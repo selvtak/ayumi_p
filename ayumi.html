@@ -16,6 +16,10 @@ JSで使用する場合はidをlowerCamelになっている。
   <meta charset="UTF-8">
   <title>あゆみ</title>
   <link rel="stylesheet" href="./ayumi.css" type="text/css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>  
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>  
+  <script type="text/javascript" src="./test.js" ></script>
 </head>
 
 <body onLoad="getUserdata()">
@@ -30,8 +34,8 @@ JSで使用する場合はidをlowerCamelになっている。
     </div>
     <!-- 日足チャート -->
     <div class="chart-container-child">
-      <div class="chart-day">
-        <img src="sample.png" width="800px">
+      <div id="container" class="chart-day">
+        <!--<img src="sample.png" width="800px">-->
       </div>
     </div>
     <!-- 5分足チャート -->
@@ -96,7 +100,7 @@ JSで使用する場合はidをlowerCamelになっている。
           <label id="currentTime" class="current-time">現在時刻</label>
         </p>
         <p>
-          <input type="button" value="開始">
+          <input type="button" id="start" value="開始">
           <input type="button" value="終了">
         </p>
         <p>
@@ -290,3 +294,58 @@ JSで使用する場合はidをlowerCamelになっている。
 <!-- トレード履歴おわり -->
 </body>
 </html>
+
+<script>
+
+$(function(){
+
+  $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
+  let lastSecond = data[data.length -1][0];
+  let open = 150;
+  let high = 153;
+  let low = 145;
+  let close = 147;
+    // create the chart
+    Highcharts.stockChart('container', {
+        chart:{
+          events:{
+            load:function(){
+              var series = this.series[0];
+                    setInterval(function () {
+                        lastSecond += 86400000;
+                        open -=1;
+                        high -=1;
+                        low -=1;
+                        close -=1;
+                        series.addPoint([lastSecond,open,high,low,close], true, true);
+                    }, 1000);
+            }
+          }
+
+        },
+        rangeSelector: {
+            selected: 1
+        },
+        title: {
+            text: 'AAPL Stock Price'
+        },
+        series: [{
+            type: 'candlestick',
+            name: 'AAPL Stock Price',
+            data: data,
+            dataGrouping: {
+                units: [
+                    [
+                        'week', // unit name
+                        [1] // allowed multiples
+                    ], [
+                        'month',
+                        [1, 2, 3, 4, 6]
+                    ]
+                ]
+            }
+        }]
+    });
+  });
+});
+</script>
