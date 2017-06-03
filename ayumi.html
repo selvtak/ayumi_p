@@ -19,7 +19,7 @@ JSで使用する場合はidをlowerCamelになっている。
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://code.highcharts.com/stock/highstock.js"></script>  
   <script src="https://code.highcharts.com/modules/exporting.js"></script>  
-  <script type="text/javascript" src="./test.js" ></script>
+  <!--<script type="text/javascript" src="./test.js" ></script>-->
 </head>
 
 <body onLoad="getUserdata()">
@@ -34,14 +34,20 @@ JSで使用する場合はidをlowerCamelになっている。
     </div>
     <!-- 日足チャート -->
     <div class="chart-container-child">
-      <div id="container" class="chart-day">
+      <div id="container_day" class="chart-day">
         <!--<img src="sample.png" width="800px">-->
       </div>
     </div>
     <!-- 5分足チャート -->
     <div class="chart-container-child">
-      <div class="chart-5min">
-        <img src="sample.png" width="800px">
+      <div id="container_5min" class="chart-5min">
+        <!--<img src="sample.png" width="800px">-->
+      </div>
+    </div>
+    <!-- 5分足チャート -->
+    <div class="chart-container-child">
+      <div id="container_5min2" class="chart-5min">
+        <!--<img src="sample.png" width="800px">-->
       </div>
     </div>
   </div>
@@ -299,53 +305,184 @@ JSで使用する場合はidをlowerCamelになっている。
 
 $(function(){
 
-  $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
-  let lastSecond = data[data.length -1][0];
-  let open = 150;
-  let high = 153;
-  let low = 145;
-  let close = 147;
-    // create the chart
-    Highcharts.stockChart('container', {
-        chart:{
-          events:{
-            load:function(){
-              var series = this.series[0];
-                    setInterval(function () {
-                        lastSecond += 86400000;
-                        open -=1;
-                        high -=1;
-                        low -=1;
-                        close -=1;
-                        series.addPoint([lastSecond,open,high,low,close], true, true);
-                    }, 1000);
+  // $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
+  // $.getJSON('tick_kai_2.json', function (data) {
+  $.getJSON('d1_day.json', function (data) {
+    $.getJSON('tick_kai_2.json', function (data2) {
+      let lastSecond = data[data.length -1][0];
+      let open = 150;
+      let high = 153;
+      let low = 145;
+      let close = 147;
+      let i = 0;
+      console.log(data2[i]);
+      // create the chart
+      Highcharts.stockChart('container_day', {
+          chart:{
+            events:{
+              load:function(){
+                var series = this.series[0];
+                      setInterval(function () {
+                          // lastSecond += 1000;
+                          // open -=1;
+                          // high -=1;
+                          // low -=1;
+                          // close -=1;
+                          console.log(series.data);
+                          series.removePoint(series.data.length-1, false);
+                          series.addPoint([data2[i][0],data2[i][1],data2[i][2],data2[i][3],data2[i][4]], true, false, true);
+                          i++;
+                      }, 1000);
+              }
             }
-          }
 
-        },
-        rangeSelector: {
+          },
+          rangeSelector: {
+              selected: 1
+          },
+          title: {
+              text: 'AAPL Stock Price'
+          },
+          series: [{
+              type: 'candlestick',
+              name: 'AAPL Stock Price',
+              data: data,
+              dataGrouping: {
+                  units: [
+                      [
+                          'week', // unit name
+                          [1] // allowed multiples
+                      ], [
+                          'month',
+                          [1, 2, 3, 4, 6]
+                      ]
+                  ]
+              }
+          }],
+          rangeSelector: {
+            buttons: [{
+              count: 1,
+              type: 'minute',
+              text: '1M'
+            }, {
+              count: 5,
+              type: 'minute',
+              text: '5M'
+            }, {
+              count: 1,
+              type: 'day',
+              text: '1d'
+            }, {
+              type: 'all',
+              text: 'All'
+            }],
+            inputEnabled: false,
             selected: 1
-        },
-        title: {
-            text: 'AAPL Stock Price'
-        },
-        series: [{
-            type: 'candlestick',
-            name: 'AAPL Stock Price',
-            data: data,
-            dataGrouping: {
-                units: [
-                    [
-                        'week', // unit name
-                        [1] // allowed multiples
-                    ], [
-                        'month',
-                        [1, 2, 3, 4, 6]
-                    ]
-                ]
-            }
-        }]
+          },
+          
+      });
     });
   });
+
+  // $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
+  // // $.getJSON('test.json', function (data) {
+  // let lastSecond = data[data.length -1][0];
+  // let open = 150;
+  // let high = 153;
+  // let low = 145;
+  // let close = 147;
+  //   // create the chart
+  //   Highcharts.stockChart('container_5min', {
+  //       chart:{
+  //         events:{
+  //           load:function(){
+  //             var series = this.series[0];
+  //                   setInterval(function () {
+  //                       lastSecond += 86400000;
+  //                       open -=1;
+  //                       high -=1;
+  //                       low -=1;
+  //                       close -=1;
+  //                       series.addPoint([lastSecond,open,high,low,close], true, true);
+  //                   }, 1000);
+  //           }
+  //         }
+
+  //       },
+  //       rangeSelector: {
+  //           selected: 1
+  //       },
+  //       title: {
+  //           text: 'AAPL Stock Price'
+  //       },
+  //       series: [{
+  //           type: 'candlestick',
+  //           name: 'AAPL Stock Price',
+  //           data: data,
+  //           dataGrouping: {
+  //               units: [
+  //                   [
+  //                       'week', // unit name
+  //                       [1] // allowed multiples
+  //                   ], [
+  //                       'month',
+  //                       [1, 2, 3, 4, 6]
+  //                   ]
+  //               ]
+  //           }
+  //       }]
+  //   });
+  // });
+
+  // $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
+  // // $.getJSON('test.json', function (data) {
+  // let lastSecond = data[data.length -1][0];
+  // let open = 150;
+  // let high = 153;
+  // let low = 145;
+  // let close = 147;
+  //   // create the chart
+  //   Highcharts.stockChart('container_5min2', {
+  //       chart:{
+  //         events:{
+  //           load:function(){
+  //             var series = this.series[0];
+  //                   setInterval(function () {
+  //                       lastSecond += 86400000;
+  //                       open -=1;
+  //                       high -=1;
+  //                       low -=1;
+  //                       close -=1;
+  //                       series.addPoint([lastSecond,open,high,low,close], true, true);
+  //                   }, 1000);
+  //           }
+  //         }
+
+  //       },
+  //       rangeSelector: {
+  //           selected: 1
+  //       },
+  //       title: {
+  //           text: 'AAPL Stock Price'
+  //       },
+  //       series: [{
+  //           type: 'candlestick',
+  //           name: 'AAPL Stock Price',
+  //           data: data,
+  //           dataGrouping: {
+  //               units: [
+  //                   [
+  //                       'week', // unit name
+  //                       [1] // allowed multiples
+  //                   ], [
+  //                       'month',
+  //                       [1, 2, 3, 4, 6]
+  //                   ]
+  //               ]
+  //           }
+  //       }]
+  //   });
+  // });
+
 });
 </script>
