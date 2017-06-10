@@ -18,7 +18,9 @@ JSで使用する場合はidをlowerCamelになっている。
   <title>あゆみ</title>
   <link rel="stylesheet" href="./ayumi.css" type="text/css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script src="https://code.highcharts.com/stock/highstock.js"></script>  
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.13/moment-timezone-with-data.js"></script>
   <script src="https://code.highcharts.com/modules/exporting.js"></script>  
   <!--<script type="text/javascript" src="./test.js" ></script>-->
 </head>
@@ -307,7 +309,6 @@ JSで使用する場合はidをlowerCamelになっている。
 $(function(){
 
   // $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
-  // $.getJSON('tick_kai_2.json', function (data) {
   $.getJSON('d1_day.json', function (data) {
     $.getJSON('tick_kai_2.json', function (data2) {
       let lastSecond = data[data.length -1][0];
@@ -317,6 +318,12 @@ $(function(){
       let close = 147;
       let i = 0;
       console.log(data2[i]);
+
+      Highcharts.setOptions({
+        global: {
+          timezone: 'Asia/Tokyo'
+        }
+      });
       // create the chart
       Highcharts.stockChart('container_day', {
           chart:{
