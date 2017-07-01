@@ -114,7 +114,8 @@ JSで使用する場合はidをlowerCamelになっている。
         </p>
         <p>
           <input type="button" value="一本戻る">
-          <input type="button" value="一時停止">
+          <input type="button" id="stop" value="一時停止">
+          <input type="button" id="restart" value="再開">
           <input type="button" value="一本進む">
         </p>
       </div>
@@ -307,17 +308,23 @@ JSで使用する場合はidをlowerCamelになっている。
 <script>
 
 $(function(){
+  function drawChart(series,data2,i){
+    console.log(i);
+    series.removePoint(series.data.length-1, false);
+    series.addPoint([data2[i][0],data2[i][1],data2[i][2],data2[i][3],data2[i][4]], true, false, true);
+    i++;
+  }
 
+  let timer;
   // $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?a=e&filename=aapl-ohlc.json&callback=?', function (data) {
-  $.getJSON('d1_day.json', function (data) {
-    $.getJSON('tick_kai_2.json', function (data2) {
+  $.getJSON('d1.json', function (data) {
+    $.getJSON('tick.json', function (data2) {
       let lastSecond = data[data.length -1][0];
       let open = 150;
       let high = 153;
       let low = 145;
       let close = 147;
       let i = 0;
-      console.log(data2[i]);
 
       Highcharts.setOptions({
         global: {
@@ -330,17 +337,27 @@ $(function(){
             events:{
               load:function(){
                 var series = this.series[0];
-                      setInterval(function () {
-                          // lastSecond += 1000;
-                          // open -=1;
-                          // high -=1;
-                          // low -=1;
-                          // close -=1;
-                          console.log(series.data);
-                          series.removePoint(series.data.length-1, false);
-                          series.addPoint([data2[i][0],data2[i][1],data2[i][2],data2[i][3],data2[i][4]], true, false, true);
-                          i++;
-                      }, 1000);
+                // timer = setInterval(drawChart(series,data2,i),1000);
+                timer = setInterval(function () {
+                    series.removePoint(series.data.length-1, false);
+                    series.addPoint([data2[i][0],data2[i][1],data2[i][2],data2[i][3],data2[i][4]], true, false, true);
+                    i++;
+                }, 1000);
+
+                // 一時停止
+                $('#stop').click(function(){
+                  clearInterval(timer);
+                });
+
+                // 再開
+                $('#restart').click(function(){
+                  timer = setInterval(function () {
+                      series.removePoint(series.data.length-1, false);
+                      series.addPoint([data2[i][0],data2[i][1],data2[i][2],data2[i][3],data2[i][4]], true, false, true);
+                      i++;
+                  }, 1000);
+                });
+
               }
             }
 
