@@ -9,6 +9,10 @@ abstract class InsertChartDataTemplateController
     private $table_name;
     private $file_name;
 
+    protected abstract function getOriginalChartData($db_name, $file_name);
+    protected abstract function summarizeOriginalChartData($original_datas);
+    protected abstract function insertOHLC($summarized_datas);
+
     public function __construct($db_name, $table_name, $file_name = null)
     {
         $this->db_name = $db_name;
@@ -23,10 +27,6 @@ abstract class InsertChartDataTemplateController
         $ohlcs = $this->createOHLC($summarized_datas);
         return $this->insertOHLCWrapper($ohlcs);
     }
-
-    protected abstract function getOriginalChartData($db_name, $file_name);
-    protected abstract function summarizeOriginalChartData($original_datas);
-    protected abstract function insertOHLC($summarized_datas);
 
     public function getDBName()
     {
